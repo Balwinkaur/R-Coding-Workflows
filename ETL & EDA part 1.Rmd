@@ -1,0 +1,122 @@
+---
+title: ' Healthcare Data ETL & Exploration'
+author: "Balwinder K"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+Purpose: Showcase Data Cleaning and Statistical Summary Skills
+---
+# --- STEP 1: LOAD TOOLS ---
+# We use 'tidyverse' because it's the industry standard for R
+
+```{r}
+update.packages(ask = FALSE, checkBuilt = TRUE) # to update the packages ignore if it is already updated.
+library(tidyverse)
+
+```
+
+# --- STEP 2: EXTRACT (Loading Data) ---
+# Replace 'healthcare_data.csv' with your actual file name
+```{r}
+raw_data <- read.csv("C://Users//BALWINDER//Downloads//github_for_r//ETL_DAUsingR//healthcare_dataset.csv")
+
+```
+
+# --- STEP 3: UNDERSTAND THE DATA SHAPE (The "Head" and "Summary") ---
+# These commands help you describe the data in your GitHub README
+```{r}
+head(raw_data,3)   # FIRST 6 ROWS or add how many rows you want to display
+```
+```{r}
+head(raw_data) # only display values from array index 0 to index 5
+```
+##Data Structure
+```{r}
+str(raw_data)           # Shows column types (Numbers, Text, etc.)
+
+```
+## STATISTICAL SUMMARY
+```{r}
+summary(raw_data)       # Shows Min, Max, Mean, and Median for every column
+
+
+```
+# --- STEP 4: TRANSFORM (The ETL Process) ---
+# This makes the data "clean" for analysis
+```{r}
+# 1. Re-load the data with a unique name
+# Ensure the filename matches exactly what is in your folder
+df_health <- read_csv("C://Users//BALWINDER//Downloads//github_for_r//ETL_DAUsingR//healthcare_dataset.csv") 
+colnames(df_health)
+
+```
+```{r}
+# Make sure you have janitor installed (Run this once in console if you get an error)
+# install.packages("janitor")
+
+library(janitor)
+
+clean_data <- df_health %>%
+  # 1. This forces all columns to be lowercase and replaces spaces with underscores
+  clean_names() %>% 
+  
+  # 2. Now 'age' (lowercase) will definitely exist
+  drop_na() %>%
+  mutate(age_group = case_when(
+    age < 18 ~ "Minor",
+    age >= 18 & age < 65 ~ "Adult",
+    age >= 65 ~ "Senior",
+    TRUE ~ "Unknown"
+  ))
+
+# Verify it worked
+glimpse(clean_data)
+```
+
+# --- STEP 5: EDA (Exploratory Data Analysis) ---
+# This creates visual proof of your work
+```{r}
+# 1. Load the tools again (Crucial!)
+library(tidyverse)
+library(ggplot2)
+
+# 2. Re-create the chart
+ggplot(clean_data, aes(x = age_group, fill = age_group)) +
+  geom_bar() +
+  theme_minimal() +
+  labs(
+    title = "Patient Count by Age Category",
+    x = "Age Group",
+    y = "Number of Patients"
+  )
+
+```
+
+# CHART 2: Checking the relationship between two variables (e.g., BMI vs Glucose)
+```{r}
+
+ggplot(clean_data, aes(x = medical_condition, y = billing_amount, fill = medical_condition)) +
+  geom_boxplot() +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = "Treatment Costs by Medical Condition", x = "Condition", y = "Cost")
+
+```
+
+```{r}
+# Data 'Shape'
+print(paste("Rows:", nrow(clean_data)))
+print(paste("Columns:", ncol(clean_data)))
+
+# Summary of numeric columns
+summary(clean_data %>% select(where(is.numeric)))
+
+```
+# --- STEP 6: LOAD (Save the Clean Work) ---
+```{r}
+write.csv(clean_data, "cleaned_healthcare_project.csv", row.names = FALSE)
+print("ETL Process Complete. Clean file saved!")
+```
+```
+
